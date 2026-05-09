@@ -4,11 +4,12 @@ hola , felipow por aqui .
 CHANGELOG
 - corregido la exp obtenida  ya no choca con otros paquetes como buff o estadisticas obtenidas.
 
-
+- corregido suma de exp en job y base . ahora toma cada suma en su lugar correctamente.
 CHANGELOG
 
 - Corrigido: A experiência ganha não entra mais em conflito com outros pacotes, como buffs ou estatísticas obtidas.
 
+- Corrigido o valor da soma de experiência no trabalho e na base. Agora, cada soma é calculada corretamente em seu devido lugar.
 
 Para poder usar el "Addon" es necesario instalar la herramienta de NPCAP 
 
