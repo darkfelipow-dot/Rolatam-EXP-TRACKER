@@ -395,21 +395,33 @@ def process_packet(packet):
                         pass
                 start_search = pos + 2
 
-        # 3. ZC_NOTIFY_EXP (0x07F6, 0x0AC9, 0x0ACC)
+        # 3. ZC_NOTIFY_EXP (0x07F6: Legacy 4-byte amount, 0x0AC9 / 0x0ACC: Modern 8-byte amount)
         for op in [b'\xf6\x07', b'\xc9\x0a', b'\xcc\x0a']:
             start_search = 0
             while True:
                 pos = payload.find(op, start_search)
                 if pos == -1:
                     break
-                if len(payload) >= pos + 14:
-                    try:
-                        exp_val  = struct.unpack_from('<I', payload, pos + 6)[0]
-                        exp_type = struct.unpack_from('<H', payload, pos + 10)[0]
-                        print(f"[DEBUG] ZC_NOTIFY_EXP Parsed - Opcode: {op.hex()}, Type: {exp_type}, Amount: {exp_val}", flush=True)
-                        handle_notify_exp(exp_type, exp_val)
-                    except Exception:
-                        pass
+                try:
+                    if op == b'\xf6\x07': # Legacy 14-byte packet structure
+                        if len(payload) >= pos + 14:
+                            exp_val  = struct.unpack_from('<I', payload, pos + 6)[0]
+                            exp_type = struct.unpack_from('<H', payload, pos + 10)[0] # Var ID at offset 10
+                            print(f"[DEBUG] ZC_NOTIFY_EXP (Legacy) Parsed - Opcode: {op.hex()}, Type: {exp_type}, Amount: {exp_val}", flush=True)
+                            handle_notify_exp(exp_type, exp_val)
+                    else: # Modern 18-byte packet structure (0x0AC9, 0x0ACC)
+                        if len(payload) >= pos + 18:
+                            exp_val  = struct.unpack_from('<Q', payload, pos + 6)[0] # 64-bit Quad amount
+                            exp_type = struct.unpack_from('<H', payload, pos + 14)[0] # Actual Var ID at offset 14
+                            
+                            # RE-MAP MODERN IDs to match internal tracking (0 for Base, 1 for Job)
+                            # User confirmed on this modern server: Type 1 is Base, Type 2 is Job.
+                            mapped_type = 0 if exp_type == 1 else (1 if exp_type == 2 else exp_type)
+                            
+                            print(f"[DEBUG] ZC_NOTIFY_EXP (Modern) Parsed - Opcode: {op.hex()}, OrigType: {exp_type}, InternalType: {mapped_type}, Amount: {exp_val}", flush=True)
+                            handle_notify_exp(mapped_type, exp_val)
+                except Exception:
+                    pass
                 start_search = pos + 2
             
     except Exception:
