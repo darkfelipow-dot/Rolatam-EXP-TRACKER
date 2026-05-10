@@ -74,10 +74,12 @@ state_lock = threading.Lock()
 # Transcendent, Third Classes and Expanded Classes unreduced EXP requirements
 import math
 
-def _generate_exp_table():
-    # Definitive Hybrid Unreduced Table sourced from Master DB
-    # Levels 1-99: Exact Unreduced Transcendent progression
-    # Levels 100-200: Exact Unreduced Renewal Baseline progression
+def _generate_expanded_table():
+    # ─────────────────────────────────────────────────────────────
+    #  TABLA 1: SUMMONER / EXPANDED (UNREDUCED BASELINE)
+    # ─────────────────────────────────────────────────────────────
+    # Levels 1-99: Transcendent progression
+    # Levels 100-200: Unreduced Renewal Baseline
     table = {
         1: 420, 2: 660, 3: 1080, 4: 1800, 5: 2640, 6: 3840, 7: 4560, 8: 5040, 9: 5460, 10: 6000,
         11: 6600, 12: 7200, 13: 7320, 14: 7620, 15: 8040, 16: 8820, 17: 9600, 18: 10080, 19: 10560, 20: 11040,
@@ -103,8 +105,47 @@ def _generate_exp_table():
     }
     return table
 
+def _generate_adjusted_table():
+    # ─────────────────────────────────────────────────────────────
+    #  TABLA 2: ADJUSTED (REDUCED EXP FROM USER IMAGE)
+    # ─────────────────────────────────────────────────────────────
+    # Sourced directly from the image user provided (Official 2020 kRO Reduction).
+    # Levels 1-99 share standard baseline logic.
+    table = _generate_expanded_table() # Seed with baseline 1-99
+    
+    # Overwrite Levels 100-200 with precise RED ADJUSTED values from provided image data
+    adjusted_data = {
+        100: 1273747, 101: 1364282, 102: 1448928, 103: 1533085, 104: 1631202,
+        105: 1735688, 106: 1846675, 107: 1964693, 108: 2090014, 109: 2224413,
+        110: 2366775, 111: 2518240, 112: 2679415, 113: 2850897, 114: 3033354,
+        115: 3227488, 116: 3434047, 117: 3653828, 118: 3887670, 119: 4136480,
+        120: 4401314, 121: 4755467, 122: 5138334, 123: 5551810, 124: 5998075,
+        125: 6481388, 126: 7003204, 127: 7566891, 128: 8175950, 129: 8834632,
+        130: 9545683, 131: 10313388, 132: 11143488, 133: 12040437, 134: 13009560,
+        135: 14056888, 136: 15188172, 137: 16410873, 138: 17731503, 139: 19158711,
+        140: 20701195, 141: 22367981, 142: 24168320, 143: 26112547, 144: 28214245,
+        145: 30485317, 146: 32939008, 147: 35590395, 148: 38455077, 149: 41550755,
+        150: 44894635, 151: 48508165, 152: 52412834, 153: 56631331, 154: 61188536,
+        155: 66114175, 156: 71436299, 157: 77186395, 158: 83399977, 159: 90111184,
+        160: 97364184, 161: 105201603, 162: 113668386, 163: 122818973, 164: 132704203,
+        165: 143386860, 166: 154930180, 167: 167398014, 168: 180873483, 169: 195436696,
+        170: 211166924, 171: 228166105, 172: 246528388, 173: 266361640, 174: 287801897,
+        175: 310968267, 176: 382913746, 177: 399479680, 178: 447978881, 179: 503931270,
+        180: 579923277, 181: 684332340, 182: 740962898, 183: 839484361, 184: 949141086,
+        185: 1074428384, 186: 1215202696, 187: 1374780273, 188: 1548535690, 189: 1744262356,
+        190: 1967144895, 191: 2219799123, 192: 2509169015, 193: 2837962030, 194: 3219468683,
+        195: 3712289668, 196: 4282319658, 197: 4717911684, 198: 6394941731, 199: 8065764639,
+        200: 8968313072
+    }
+    for lvl, val in adjusted_data.items():
+        table[lvl] = val
+    return table
 
-BASE_EXP_TABLE = _generate_exp_table()
+EXP_TABLE_SUMMONER = _generate_expanded_table()
+EXP_TABLE_ADJUSTED = _generate_adjusted_table()
+
+# Reference variable that is swapped dynamically via UI dropdown
+BASE_EXP_TABLE = EXP_TABLE_SUMMONER
 
 
 # ─────────────────────────────────────────────────────────────
@@ -639,7 +680,7 @@ class App:
         ui_instance = self
         self.root = root
         self.root.title("ROEXP TRACKER v1.0")
-        self.root.geometry("460x730")
+        self.root.geometry("460x760")
         self.root.attributes("-topmost", False)
         self.root.configure(bg="#121212")
         
@@ -685,16 +726,25 @@ class App:
         self.win_combo.grid(row=1, column=1, columnspan=2, sticky="w", padx=5, pady=8)
         self.win_combo.bind("<<ComboboxSelected>>", self.change_window_size)
         
-        # Row 2: Level / EXP Manual Sync
+        # New Row 2: Table Selection (Summoner vs Adjusted)
+        self.table_lbl = tk.Label(self.control_inner, text="Tabla EXP:", bg="#1E1E1E", fg="#888888", font=("Segoe UI", 9))
+        self.table_lbl.grid(row=2, column=0, sticky="w", padx=5, pady=8)
+        
+        self.table_combo = ttk.Combobox(self.control_inner, values=["Standard (Normal)", "Adjusted (Reducida)"], state="readonly", width=16)
+        self.table_combo.current(0)
+        self.table_combo.grid(row=2, column=1, columnspan=2, sticky="w", padx=5, pady=8)
+        self.table_combo.bind("<<ComboboxSelected>>", self.change_exp_table)
+        
+        # Row 3 (was 2): Level / EXP Manual Sync
         self.sync_lbl = tk.Label(self.control_inner, text="Base Lvl:", bg="#1E1E1E", fg="#888888", font=("Segoe UI", 9))
-        self.sync_lbl.grid(row=2, column=0, sticky="w", padx=5, pady=4)
+        self.sync_lbl.grid(row=3, column=0, sticky="w", padx=5, pady=4)
         
         self.lvl_entry = tk.Entry(self.control_inner, bg="#121212", fg="#FFFFFF", bd=0, insertbackground="#FFFFFF", width=8, font=("Segoe UI", 9, "bold"), justify="center")
-        self.lvl_entry.grid(row=2, column=1, sticky="w", padx=5, pady=4)
+        self.lvl_entry.grid(row=3, column=1, sticky="w", padx=5, pady=4)
         self.lvl_entry.insert(0, "187")
         
         self.pct_frame = tk.Frame(self.control_inner, bg="#1E1E1E")
-        self.pct_frame.grid(row=2, column=2, sticky="w", padx=5, pady=4)
+        self.pct_frame.grid(row=3, column=2, sticky="w", padx=5, pady=4)
         
         self.pct_lbl = tk.Label(self.pct_frame, text="EXP %:", bg="#1E1E1E", fg="#888888", font=("Segoe UI", 9))
         self.pct_lbl.pack(side="left")
@@ -706,17 +756,17 @@ class App:
         self.sync_btn = tk.Button(self.pct_frame, text="SYNC", bg="#FFD600", fg="#121212", activebackground="#FFC400", bd=0, font=("Segoe UI", 8, "bold"), cursor="hand2", padx=6, command=self.sync_level_exp)
         self.sync_btn.pack(side="left", padx=5)
         
-        # Row 3: Client Process Selection
+        # Row 4 (was 3): Client Process Selection
         self.proc_lbl = tk.Label(self.control_inner, text="Cliente RO:", bg="#1E1E1E", fg="#888888", font=("Segoe UI", 9))
-        self.proc_lbl.grid(row=3, column=0, sticky="w", padx=5, pady=8)
+        self.proc_lbl.grid(row=4, column=0, sticky="w", padx=5, pady=8)
         
         self.proc_combo = ttk.Combobox(self.control_inner, values=["Todos los clientes"], state="readonly", width=16)
         self.proc_combo.current(0)
-        self.proc_combo.grid(row=3, column=1, sticky="w", padx=5, pady=8)
+        self.proc_combo.grid(row=4, column=1, sticky="w", padx=5, pady=8)
         self.proc_combo.bind("<<ComboboxSelected>>", self.select_target_process)
         
         self.proc_btn = tk.Button(self.control_inner, text="REFRESCAR", bg="#424242", fg="#FFFFFF", activebackground="#00B0FF", bd=0, font=("Segoe UI", 8, "bold"), cursor="hand2", padx=6, command=self.refresh_process_list)
-        self.proc_btn.grid(row=3, column=2, sticky="w", padx=5, pady=8)
+        self.proc_btn.grid(row=4, column=2, sticky="w", padx=5, pady=8)
         self.bind_hover_effect(self.proc_btn, "#424242", "#2E2E2E")
         
         # ── Level Info Card ───────────────────────────────
@@ -856,6 +906,16 @@ class App:
             elif val == "Promedio Sesión":
                 state['window_size'] = 9999999  # very large window
         self.log_message(f"Ventana de cálculo actualizada a: {val}", "system")
+        
+    def change_exp_table(self, event):
+        global BASE_EXP_TABLE
+        val = self.table_combo.get()
+        if val == "Adjusted (Reducida)":
+            BASE_EXP_TABLE = EXP_TABLE_ADJUSTED
+            self.log_message("Tabla activa: ADJUSTED EXP (Reducida)", "system")
+        else:
+            BASE_EXP_TABLE = EXP_TABLE_SUMMONER
+            self.log_message("Tabla activa: STANDARD EXP (Normal)", "system")
 
     def sync_level_exp(self):
         try:
