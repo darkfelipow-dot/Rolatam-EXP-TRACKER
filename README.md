@@ -16,9 +16,7 @@ Para poder usar el "Addon" es necesario instalar la herramienta de NPCAP
 https://npcap.com  
 es una herramienta para esuchar el trafico de red , es el mismo sistema que utilizan algunos addons de FF14 . 
 
-deben seleccionar su tarjeta de red a la cual estan conectados a internet . ( abren simbolo de sistema y ejecuta  "   ipconfig /all  " . 
 
-en cualquier caso si no logran dar con la tarjeta , reinicien el programa hasta seleccionar la que corresponda .
 
 ////////////////////////////////////////////////////////////
 
@@ -29,9 +27,7 @@ Para usar o complemento, você precisa instalar a ferramenta NPCAP.
 https://npcap.com
 É uma ferramenta para monitorar o tráfego de rede; é o mesmo sistema usado por alguns complementos do FF14.
 
-Você deve selecionar o adaptador de rede pelo qual está conectado à internet. (Abra o Prompt de Comando e execute "ipconfig /all".)
 
-Se não encontrar o adaptador, reinicie o programa até selecionar o correto.
 
 /////////////////////////////////////////////////////////////
 
